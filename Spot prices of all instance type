@@ -1,0 +1,28 @@
+import boto3
+
+def get_spot_prices():
+    ec2_client = boto3.client('ec2')
+
+    # Get a list of all instance types available in your AWS region
+    response = ec2_client.describe_instance_types()
+    instance_types = [instance_type['InstanceType'] for instance_type in response['InstanceTypes']]
+#print(instance_types)
+    # Get current spot prices for each instance type
+    spot_prices = {}
+    for instance_type in instance_types:
+        response = ec2_client.describe_spot_price_history(
+            InstanceTypes=[instance_type],
+            MaxResults=1,  # You can increase this value to fetch more spot price history
+            ProductDescriptions=['Linux/UNIX']  # You can specify other product descriptions if needed
+        )
+        if 'SpotPriceHistory' in response and len(response['SpotPriceHistory']) > 0:
+            spot_prices[instance_type] = response['SpotPriceHistory'][0]['SpotPrice']
+
+    return spot_prices
+
+if _name_ == "_main_":
+    spot_prices = get_spot_prices()
+
+    # Print the spot prices
+    for instance_type, spot_price in spot_prices.items():
+        print(f"Instance Type: {instance_type}, Spot Price: {spot_price}")                                                                                                                                         
